@@ -16,8 +16,8 @@ rho = 1.2;   %kg/m^3
 % Split data into bins for height, temp., windspeed, and relative humidity.
 % Focus only on breaking up height bins first.
 
-pbl_height = 2000;  %Height over which mean is taken (Powell uses 500m)
-max_height = 2000;  %Height over which the fit is done
+pbl_height = 10000;  %Height over which mean is taken (Powell uses 500m)
+max_height = 10000;  %Height over which the fit is done
 min_height = 10;   %Bottom height over which fit is done
 height_interval = 10;
 num_z = (max_height-min_height)/height_interval;
@@ -46,6 +46,8 @@ num_rad_bins = max_rad/rad_interval;
 % Making blank matrices to save spaces for data
 % [height_bin, radii_bin, wind_bin]
 mean_U_profiles = zeros(num_z,num_rad_bins,num_wind_bins);
+mean_Ur_profiles = zeros(num_z,num_rad_bins,num_wind_bins);
+mean_Ut_profiles = zeros(num_z,num_rad_bins,num_wind_bins);
 numvecU = zeros(num_z,num_rad_bins,num_wind_bins);
 %Guiquan mean_T_profiles = zeros(num_z,num_rad_bins,num_theta_bins);
 %Guiquan numvecT = zeros(num_z,num_rad_bins,num_theta_bins);
@@ -91,24 +93,24 @@ rplot = 0.5*rad_interval:rad_interval:max_rad-0.5*rad_interval;
 %     'Franklin2017/' 'Harvey2017/' 'Irma2017/' 'Jose2017/' 'Maria2017/' 'Nate2017/'};
  
 %Without basically empty ones (as determined by composite wind height-radius plots):
-hurrvec = { ...
-    'Erika1997/' ...
-    'Bonnie1998/' 'Danielle1998/' 'Earl1998/' 'Georges1998/' 'Mitch1998/' ...
-    'Bret1999/' 'Dennis1999/' 'Floyd1999/' ...
-    'Helene2006/' ...
-    'Felix2007/' 'Ingrid2007/' ...
-    'Dolly2008/' 'Fay2008/' 'Gustav2008/' 'Ike2008/' 'Paloma2008/' ...
-    'Earl2010/' 'Karl2010/' ...
-    'Irene2011/' 'Rina2011/' ...
-    'Leslie2012/' 'Sandy2012/' ...
-    'Ingrid2013/' 'Karen2013/' ...
-    'Arthur2014/' 'Bertha2014/' 'Cristobal2014/' 'Edouard2014/' 'Gonzalo2014/' ...
-    'Danny2015/' 'Erika2015/' 'Joaquin2015/' ...
-    'Hermine2016/' 'Karl2016/' 'Matthew2016/' ...
-    'Franklin2017/' 'Harvey2017/' 'Irma2017/' 'Jose2017/' 'Maria2017/' 'Nate2017/'};
+% hurrvec = { ...
+%     'Erika1997/' ...
+%     'Bonnie1998/' 'Danielle1998/' 'Earl1998/' 'Georges1998/' 'Mitch1998/' ...
+%     'Bret1999/' 'Dennis1999/' 'Floyd1999/' ...
+%     'Helene2006/' ...
+%     'Felix2007/' 'Ingrid2007/' ...
+%     'Dolly2008/' 'Fay2008/' 'Gustav2008/' 'Ike2008/' 'Paloma2008/' ...
+%     'Earl2010/' 'Karl2010/' ...
+%     'Irene2011/' 'Rina2011/' ...
+%     'Leslie2012/' 'Sandy2012/' ...
+%     'Ingrid2013/' 'Karen2013/' ...
+%     'Arthur2014/' 'Bertha2014/' 'Cristobal2014/' 'Edouard2014/' 'Gonzalo2014/' ...
+%     'Danny2015/' 'Erika2015/' 'Joaquin2015/' ...
+%     'Hermine2016/' 'Karl2016/' 'Matthew2016/' ...
+%     'Franklin2017/' 'Harvey2017/' 'Irma2017/' 'Jose2017/' 'Maria2017/' 'Nate2017/'};
 
 %Testing:
-%hurrvec = {'Franklin2017/' 'Harvey2017/' 'Irma2017/' 'Jose2017/' 'Maria2017/' 'Nate2017/' };
+hurrvec = {'Irma2017/' };
 
 %%% 1. RMW from Dan Chavas, every 6 hours%%%%%
 load('./RWS/ebtrk_atlc_1988_2017.mat','Year_EBT','Month_EBT','Day_EBT','HourUTC_EBT','StormName_EBT','rmkm_EBT','Vmms_EBT');
@@ -159,6 +161,10 @@ for hurr = hurrvec % 1. loop every hurricane
         ptmp = dat(:,3); % [mb]
         WStmp = dat(:,8); % [m/s]
         RHtmp = dat(:,5); % [%]
+        Utmp = dat(:,9); % [m/s] -- the zonal velocity component
+        Vtmp = dat(:,10); % [m/s] -- the meridonal velocity component
+        lattmp = dat(:,18); %Deg N
+        lontmp = dat(:,19); %Deg E
 
         %Clean the data - if any of them have a negative signal, remove for
         %all profiles (only want a profile if all data is there)
@@ -167,7 +173,14 @@ for hurr = hurrvec % 1. loop every hurricane
         T = Ttmp(ztmp>0&Ttmp>0&ptmp>0&WStmp>0&RHtmp>0) + 273;
         p = ptmp(ztmp>0&Ttmp>0&ptmp>0&WStmp>0&RHtmp>0);
         WS = WStmp(ztmp>0&Ttmp>0&ptmp>0&WStmp>0&RHtmp>0);
+        U = Utmp(ztmp>0&Ttmp>0&ptmp>0&WStmp>0&RHtmp>0);
+        V = Vtmp(ztmp>0&Ttmp>0&ptmp>0&WStmp>0&RHtmp>0);
         RH = RHtmp(ztmp>0&Ttmp>0&ptmp>0&WStmp>0&RHtmp>0);
+        latvec = lattmp(ztmp>0&Ttmp>0&ptmp>0&WStmp>0&RHtmp>0);
+        lonvec = lontmp(ztmp>0&Ttmp>0&ptmp>0&WStmp>0&RHtmp>0);
+        Ut = zeros(size(U));
+        Ur = zeros(size(U));
+        
 
         %A bit redundant but *pbl contains the profile from bottom to pbl_height (500m,used by Powell 2003)
         zpbl = z(z<pbl_height);   
@@ -175,6 +188,7 @@ for hurr = hurrvec % 1. loop every hurricane
         ppbl = p(z<pbl_height);
         WSpbl = WS(z<pbl_height);
         RHpbl = RH(z<pbl_height);
+
 
         if (~isempty(z))  %Only do the computations if data is left after the clean
 
@@ -210,12 +224,57 @@ for hurr = hurrvec % 1. loop every hurricane
             end
 
             %Compute the radius of the sonde based on the current center
+            %lat,lon here of the sonde are the LAUNCH coordinates
             [lat_center,lon_center,lat,lon,time_sonde] = get_track(hurr{1},[filedir files(i).name]);
+
             lat = lat-lat_center; lon = lon-lon_center;
             rearth = 6371; %[km]
-            x = rearth*tand(lat); y = rearth*tand(lon);
+            x = rearth*tand(lon); y = rearth*tand(lat);  %zoom in -- lon is in the "x" direction, lat is in the "y" direction
             rad = sqrt(x^2+y^2);
-    
+            
+%             %Compute the radial and tangential components:
+%             %Here is based on the lat/lon of LAUNCH:
+%             angle = -atan2(y,x);  %Make negative so we do the clockwise rotation
+%             rotmat = [cos(angle) -sin(angle); sin(angle) cos(angle)];
+%             
+%             tmp_mat(1,:) = U;
+%             tmp_mat(2,:) = V;
+%             
+%             radial_mat = rotmat*tmp_mat;
+%             
+%             Ut = -radial_mat(1,:)'; %Tangential velocity -- CCW is positive direction
+%             Ur = radial_mat(2,:)'; %Radial direction -- outwards is positive
+            
+            
+            %Compute the radial and tangential components:
+            %Here is based on the lat/lon of CURRENT sonde reading
+            for sonde_idx = 1:length(U)
+                lat_s = latvec(sonde_idx) - lat_center; lon_s = lonvec(sonde_idx) - lon_center;
+                xs = rearth*tand(lon_s); ys = rearth*tand(lat_s);
+               
+                angle = -atan2(ys,xs); %Make negative so we do the clockwise rotation
+                rotmat = [cos(angle) -sin(angle); sin(angle) cos(angle)];
+                
+                tmp_mat = [U(sonde_idx); V(sonde_idx)];
+                radial_mat = rotmat*tmp_mat;
+                
+                Ut(sonde_idx) = -radial_mat(1);
+                Ur(sonde_idx) = radial_mat(2);
+                
+            end
+
+            figure(12)
+            clf
+            hold on
+            plot(U,'b')
+            plot(V,'g')
+            plot(sqrt(U.^2 + V.^2),'-c*')
+            plot(WS,'r')
+            drawnow
+            %pause
+            
+            clearvars tmp_mat radial_mat
+            
             % position of dropsonde, because RMW is every 6 bours, so if the
             % k_rmw_time_hurr (time_sonde-3, time_sonde+3), then
             % r_rmw_rad_hurr = RMW(time sonde), without interpolation
@@ -276,6 +335,12 @@ for hurr = hurrvec % 1. loop every hurricane
 
                     zidx = floor((z(j)-min_height)/height_interval)+1;
                     mean_U_profiles(zidx,radbin,windbin) = mean_U_profiles(zidx,radbin,windbin)+WS(j);
+                    mean_Ur_profiles(zidx,radbin,windbin) = mean_Ur_profiles(zidx,radbin,windbin)+Ur(j);
+                    mean_Ut_profiles(zidx,radbin,windbin) = mean_Ut_profiles(zidx,radbin,windbin)+Ut(j);
+
+                    %mean_Ur_profiles(zidx,radbin,windbin) = mean_Ur_profiles(zidx,radbin,windbin)+abs(U(j));
+                    %mean_Ut_profiles(zidx,radbin,windbin) = mean_Ut_profiles(zidx,radbin,windbin)+abs(V(j));
+
                     mean_U_profiles_onestorm(zidx,radbin,windbin) = mean_U_profiles_onestorm(zidx,radbin,windbin)+WS(j);
 %Guiquan                        mean_T_profiles(zidx,radbin,thetabin) = mean_T_profiles(zidx,radbin,thetabin)+T(j);
 %Guiquan                        mean_RH_profiles(zidx,radbin,thetabin) = mean_RH_profiles(zidx,radbin,thetabin)+RH(j);
@@ -308,8 +373,8 @@ for hurr = hurrvec % 1. loop every hurricane
                 profilecount(windbin,radbin,count_hurr) = profilecount(windbin,radbin,count_hurr) + 1;
             end
             
-            sondexvec(count_sonde) = x/r_rmw_rad_hurr;
-            sondeyvec(count_sonde) = y/r_rmw_rad_hurr;
+            sondexvec(count_sonde) = x;
+            sondeyvec(count_sonde) = y;
             count_sonde = count_sonde + 1;
 
 %Guiquan                end %If ~(isnan(SST))
@@ -336,9 +401,11 @@ end %Loop over hurricanes
 
 fprintf('Total number of profiles used: %i\n',sum(sum(sum(profilecount))));
 
-mean_zU_profiles(:,:,:)=mean_zU_profiles(:,:,:)./numvecU(:,:,:);
+mean_zU_profiles(:,:,:) = mean_zU_profiles(:,:,:)./numvecU(:,:,:);
 %Guiquan    mean_z_profiles(:,:,:)=mean_z_profiles(:,:,:)./numvecT(:,:,:);
-mean_U_profiles(:,:,:)=mean_U_profiles(:,:,:)./numvecU(:,:,:);
+mean_U_profiles(:,:,:) = mean_U_profiles(:,:,:)./numvecU(:,:,:);
+mean_Ur_profiles(:,:,:) = mean_Ur_profiles(:,:,:)./numvecU(:,:,:);
+mean_Ut_profiles(:,:,:) = mean_Ut_profiles(:,:,:)./numvecU(:,:,:);
 %Guiquan    mean_T_profiles(:,:,:)=mean_T_profiles(:,:,:)./numvecT(:,:,:);
 %Guiquan    mean_RH_profiles(:,:,:)=mean_RH_profiles(:,:,:)./numvecT(:,:,:);
 %Guiquan    mean_p_profiles(:,:,:)=mean_p_profiles(:,:,:)./numvecT(:,:,:);
@@ -353,18 +420,38 @@ mean_U_profiles(:,:,:)=mean_U_profiles(:,:,:)./numvecU(:,:,:);
 
 figure(2)
 hold on
-contourf(R,Z,mean_U_profiles,0:0.1:60,'edgecolor','none');
+contourf(R,Z,mean_U_profiles,0:2:60,'edgecolor','none');
 axis([0 5 0 2000])
-contour(R,Z,mean_U_profiles,0:5:60,'edgecolor','black')
-[maxspeed, I] = max(mean_U_profiles,[],1);
-plot(rplot,zplot(I),'-k','linewidth',3)
+%contour(R,Z,mean_U_profiles,0:5:60,'edgecolor','black')
+%[~, I] = max(mean_U_profiles,[],1);
+%plot(rplot,zplot(I),'-k','linewidth',3)
 
 figure(3)
 hold on
 plot(sondexvec,sondeyvec,'x')
 xlabel('x')
 ylabel('y')
-axis([-5 5 -5 5])
+%axis([-5 5 -5 5])
+
+figure(4)
+hold on
+contourf(R,Z,mean_Ur_profiles,'edgecolor','none');
+axis([0 5 0 2000])
+title('U')
+
+
+figure(5)
+hold on
+contourf(R,Z,mean_Ut_profiles,'edgecolor','none');
+axis([0 5 0 2000])
+title('V')
+
+figure(6)
+hold on
+axis([0 5 0 2000])
+contourf(R,Z,sqrt(mean_Ur_profiles.^2 + mean_Ut_profiles.^2),0:2:60,'edgecolor','none');
+
+
 
 %% Saving Variables
 
