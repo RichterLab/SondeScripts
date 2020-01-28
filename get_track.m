@@ -37,33 +37,25 @@ lon = 360 - str2double(C{1}{17}(22:26));
 
 %From the track of the hurricane, get lat and lon as function of time
 hurr = hurr(1:end-1); %char
-gid = fopen(['./Track_data/', hurr, '.txt']);
-D = textscan(gid,'%s','delimiter','\n');
-fclose(gid);
+% gid = fopen(['./Track_data/', hurr, '.txt']);
 
-% Compare Date, Match Time, and Find Lat/Lon
+F = readtable(['./Track_data/', hurr, '.txt'],'Format','%{MM/dd/yyyy}D %{hh:mm:ss}T %f %s %f %s');
 
-%To hopefully catch (via breaking) in case a center comparison isn't found
-lat_center=NaN;
-lon_center=NaN;
+lat_center_vec = table2array(F(:,3));
+lon_center_vec = table2array(F(:,5));
 
-for i=4:length(D{1})-1
-    %Now pick out relevant data using known character locations:
-    date_center = D{1}{i}(1:10);
-    time_center = D{1}{i}(12:19);
-    year_center = date_center(7:10);
-    mon_center = date_center(1:2);
-    day_center = date_center(4:5);
-    hour = time_center(1:2);
-    min = time_center(4:5);
-    sec = time_center(7:8);
-    time_center = datenum(str2double(year_center),str2double(mon_center),str2double(day_center),str2double(hour),str2double(min),str2double(sec));
+time_center = datenum(F.Var1(:)+F.Var2(:));
+
+I = find(time<time_center);
+
+if (isempty(I))
+    lat_center = NaN;
+    lon_center = NaN;
+else
     
-    if time < time_center
-        lat_center = str2double(D{1}{i}(25:30));
-        lon_center = 360-str2double(D{1}{i}(38:43));
-        break
-    end
+    lat_center = lat_center_vec(I(1));
+    lon_center = 360-lon_center_vec(I(1));
+    
 end
 
 end

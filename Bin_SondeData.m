@@ -19,7 +19,7 @@ rho = 1.2;   %kg/m^3
 pbl_height = 10000;  %Height over which mean is taken (Powell uses 500m)
 max_height = 10000;  %Height over which the fit is done
 min_height = 10;   %Bottom height over which fit is done
-height_interval = 10;
+height_interval = 10; 
 num_z = (max_height-min_height)/height_interval;
 
 % Limits of wind speed bins
@@ -49,6 +49,7 @@ mean_U_profiles = zeros(num_z,num_rad_bins,num_wind_bins);
 mean_Ur_profiles = zeros(num_z,num_rad_bins,num_wind_bins);
 mean_Ut_profiles = zeros(num_z,num_rad_bins,num_wind_bins);
 numvecU = zeros(num_z,num_rad_bins,num_wind_bins);
+numsonde = zeros(num_rad_bins,num_wind_bins);
 %Guiquan mean_T_profiles = zeros(num_z,num_rad_bins,num_theta_bins);
 %Guiquan numvecT = zeros(num_z,num_rad_bins,num_theta_bins);
 %Guiquan mean_RH_profiles = zeros(num_z,num_rad_bins,num_theta_bins);
@@ -93,24 +94,24 @@ rplot = 0.5*rad_interval:rad_interval:max_rad-0.5*rad_interval;
 %     'Franklin2017/' 'Harvey2017/' 'Irma2017/' 'Jose2017/' 'Maria2017/' 'Nate2017/'};
  
 %Without basically empty ones (as determined by composite wind height-radius plots):
-% hurrvec = { ...
-%     'Erika1997/' ...
-%     'Bonnie1998/' 'Danielle1998/' 'Earl1998/' 'Georges1998/' 'Mitch1998/' ...
-%     'Bret1999/' 'Dennis1999/' 'Floyd1999/' ...
-%     'Helene2006/' ...
-%     'Felix2007/' 'Ingrid2007/' ...
-%     'Dolly2008/' 'Fay2008/' 'Gustav2008/' 'Ike2008/' 'Paloma2008/' ...
-%     'Earl2010/' 'Karl2010/' ...
-%     'Irene2011/' 'Rina2011/' ...
-%     'Leslie2012/' 'Sandy2012/' ...
-%     'Ingrid2013/' 'Karen2013/' ...
-%     'Arthur2014/' 'Bertha2014/' 'Cristobal2014/' 'Edouard2014/' 'Gonzalo2014/' ...
-%     'Danny2015/' 'Erika2015/' 'Joaquin2015/' ...
-%     'Hermine2016/' 'Karl2016/' 'Matthew2016/' ...
-%     'Franklin2017/' 'Harvey2017/' 'Irma2017/' 'Jose2017/' 'Maria2017/' 'Nate2017/'};
+hurrvec = { ...
+    'Erika1997/' ...
+    'Bonnie1998/' 'Danielle1998/' 'Earl1998/' 'Georges1998/' 'Mitch1998/' ...
+    'Bret1999/' 'Dennis1999/' 'Floyd1999/' ...
+    'Helene2006/' ...
+    'Felix2007/' 'Ingrid2007/' ...
+    'Dolly2008/' 'Fay2008/' 'Gustav2008/' 'Ike2008/' 'Paloma2008/' ...
+    'Earl2010/' 'Karl2010/' ...
+    'Irene2011/' 'Rina2011/' ...
+    'Leslie2012/' 'Sandy2012/' ...
+    'Ingrid2013/' 'Karen2013/' ...
+    'Arthur2014/' 'Bertha2014/' 'Cristobal2014/' 'Edouard2014/' 'Gonzalo2014/' ...
+    'Danny2015/' 'Erika2015/' 'Joaquin2015/' ...
+    'Hermine2016/' 'Karl2016/' 'Matthew2016/' ...
+    'Franklin2017/' 'Harvey2017/' 'Irma2017/' 'Jose2017/' 'Maria2017/' 'Nate2017/'};
 
 %Testing:
-hurrvec = {'Irma2017/' };
+% hurrvec = {'Nate2017/' };
 
 %%% 1. RMW from Dan Chavas, every 6 hours%%%%%
 load('./RWS/ebtrk_atlc_1988_2017.mat','Year_EBT','Month_EBT','Day_EBT','HourUTC_EBT','StormName_EBT','rmkm_EBT','Vmms_EBT');
@@ -252,26 +253,52 @@ for hurr = hurrvec % 1. loop every hurricane
                 lat_s = latvec(sonde_idx) - lat_center; lon_s = lonvec(sonde_idx) - lon_center;
                 xs = rearth*tand(lon_s); ys = rearth*tand(lat_s);
                
-                angle = -atan2(ys,xs); %Make negative so we do the clockwise rotation
-                rotmat = [cos(angle) -sin(angle); sin(angle) cos(angle)];
+
+                atan_tmp = atan2(ys,xs); %Location of lat/lon in polar angle
+                angle = atan_tmp + (atan_tmp<0)*2*pi;  %Need to correct for atan2 returning between -pi and pi
+                angle = angle - pi/2;  %Get the CCW rotation angle right according to the polar angle
+                rotmat = [cos(2*pi-angle) -sin(2*pi-angle); sin(2*pi-angle) cos(2*pi-angle)]; 
                 
                 tmp_mat = [U(sonde_idx); V(sonde_idx)];
                 radial_mat = rotmat*tmp_mat;
                 
-                Ut(sonde_idx) = -radial_mat(1);
+                Ut(sonde_idx) = -radial_mat(1);  %Negative to get positive Ut in the CCW direction
                 Ur(sonde_idx) = radial_mat(2);
                 
             end
 
-            figure(12)
-            clf
-            hold on
-            plot(U,'b')
-            plot(V,'g')
-            plot(sqrt(U.^2 + V.^2),'-c*')
-            plot(WS,'r')
-            drawnow
-            %pause
+            
+%             if (rad < 100)
+%             figure(12)
+%             clf
+%             hold on
+%             plot(U,z,'b')
+%             plot(V,z,'g')
+%             plot(Ur,z,'c')
+%             plot(Ut,z,'r')
+%             legend('U','V','Ur','Ut')
+%             drawnow
+% 
+%             figure(13)
+%             clf
+%             hold on
+%             q=quiver(x,y,mean(U),mean(V));
+%             
+%             atan_tmp = atan2(ys,xs);
+%             thetatmp = atan_tmp + (atan_tmp<0)*2*pi;
+%             thetatmp = 2*pi - (thetatmp - pi/2);
+%             tmpvec = [cos(-thetatmp) -sin(-thetatmp); sin(-thetatmp) cos(-thetatmp)] * [-mean(Ut); mean(Ur)];
+%             
+%             q2=quiver(x,y,tmpvec(1),tmpvec(2));
+%             q.MaxHeadSize = 0.8;
+%             q.Color = 'g';
+%             q2.MaxHeadSize = 0.8;
+%             q2.Color = 'b';
+%             axis([-100 100 -100 100])
+%             drawnow
+%             
+%             %pause
+%             end
             
             clearvars tmp_mat radial_mat
             
@@ -291,7 +318,7 @@ for hurr = hurrvec % 1. loop every hurricane
                   
                     radbin = floor(rad_sonde_rms_ratio/rad_interval)+1;
                     if (radbin > num_rad_bins)
-                        radbin = num_rad_bins;
+                        radbin = 0; %Don't include if it falls outside of range
                     end
                     
                     %Guiquan's:
@@ -367,6 +394,9 @@ for hurr = hurrvec % 1. loop every hurricane
 %Guiquan                        all_theta_profiles{zidx,radbin,thetabin} = [all_theta_profiles{zidx,radbin,thetabin} theta(j)];
                 end
             end %z-grid
+            
+                numsonde(radbin,windbin) = numsonde(radbin,windbin) + 1;
+            
             end 
 
             if (radbin~=0 && ~isnan(radbin) && ~isnan(windbin)) 
@@ -435,23 +465,21 @@ ylabel('y')
 
 figure(4)
 hold on
-contourf(R,Z,mean_Ur_profiles,'edgecolor','none');
+contourf(R,Z,mean_Ur_profiles,-20:2:15,'edgecolor','none');
 axis([0 5 0 2000])
-title('U')
+title('Ur')
 
 
 figure(5)
 hold on
-contourf(R,Z,mean_Ut_profiles,'edgecolor','none');
+contourf(R,Z,mean_Ut_profiles,0:2:60,'edgecolor','none');
 axis([0 5 0 2000])
-title('V')
+title('Ut')
 
 figure(6)
 hold on
-axis([0 5 0 2000])
-contourf(R,Z,sqrt(mean_Ur_profiles.^2 + mean_Ut_profiles.^2),0:2:60,'edgecolor','none');
-
-
+num_samples = sum(numsonde(:,:),2);
+plot(rplot,num_samples,'-*k')
 
 %% Saving Variables
 
