@@ -230,7 +230,7 @@ for hurr = hurrvec % 1. loop every hurricane
 
             %Compute the radius of the sonde based on the current center
             %lat,lon here of the sonde are the LAUNCH coordinates
-            [lat_center,lon_center,lat,lon,time_sonde] = get_track(F,hurr{1},[filedir files(i).name]);
+            [lat_center,lon_center,lat,lon,time_sonde] = get_track(F,[filedir files(i).name]);
 
             lat = lat-lat_center; lon = lon-lon_center;
             rearth = 6371; %[km]

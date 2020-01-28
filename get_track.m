@@ -1,4 +1,4 @@
-function [lat_center,lon_center,lat,lon,cach2] = get_track(F,hurr,sonde_filename)
+function [lat_center,lon_center,lat,lon,cach2] = get_track(F,sonde_filename)
 
 %From the sonde_filename file, get the day, lat, lon of sonde drop:
 fid = fopen(sonde_filename);
