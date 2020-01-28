@@ -28,7 +28,7 @@ wind_interval = 80;
 num_wind_bins = max_wind/wind_interval;
 
 %Limits of radius bins -- in normalized units (R/RMW)
-max_rad = 20;                             
+max_rad = 12;                             
 rad_interval = 0.4;
 num_rad_bins = max_rad/rad_interval;
 
@@ -50,25 +50,25 @@ mean_Ur_profiles = zeros(num_z,num_rad_bins,num_wind_bins);
 mean_Ut_profiles = zeros(num_z,num_rad_bins,num_wind_bins);
 numvecU = zeros(num_z,num_rad_bins,num_wind_bins);
 numsonde = zeros(num_rad_bins,num_wind_bins);
-%Guiquan mean_T_profiles = zeros(num_z,num_rad_bins,num_theta_bins);
-%Guiquan numvecT = zeros(num_z,num_rad_bins,num_theta_bins);
-%Guiquan mean_RH_profiles = zeros(num_z,num_rad_bins,num_theta_bins);
+mean_T_profiles = zeros(num_z,num_rad_bins,num_wind_bins);
+% numvecT = zeros(num_z,num_rad_bins,num_theta_bins);
+mean_RH_profiles = zeros(num_z,num_rad_bins,num_wind_bins);
 mean_zU_profiles = zeros(num_z,num_rad_bins,num_wind_bins);
-%Guiquan mean_z_profiles = zeros(num_z,num_rad_bins,num_theta_bins);
-%Guiquan mean_p_profiles = zeros(num_z,num_rad_bins,num_theta_bins);
-%Guiquan mean_q_profiles = zeros(num_z,num_rad_bins,num_theta_bins);
-%Guiquan mean_k_profiles = zeros(num_z,num_rad_bins,num_theta_bins);
-%Guiquan mean_theta_profiles = zeros(num_z,num_rad_bins,num_theta_bins);
+mean_z_profiles = zeros(num_z,num_rad_bins,num_wind_bins);
+mean_p_profiles = zeros(num_z,num_rad_bins,num_wind_bins);
+mean_q_profiles = zeros(num_z,num_rad_bins,num_wind_bins);
+mean_k_profiles = zeros(num_z,num_rad_bins,num_wind_bins);
+mean_theta_profiles = zeros(num_z,num_rad_bins,num_wind_bins);
 
 all_U_profiles = cell(num_z,num_rad_bins,num_wind_bins);
-%Guiquan all_T_profiles = cell(num_z,num_rad_bins,num_theta_bins);
-%Guiquan all_RH_profiles = cell(num_z,num_rad_bins,num_theta_bins);
+all_T_profiles = cell(num_z,num_rad_bins,num_wind_bins);
+all_RH_profiles = cell(num_z,num_rad_bins,num_wind_bins);
 all_zU_profiles = cell(num_z,num_rad_bins,num_wind_bins);
-%Guiquan all_z_profiles = cell(num_z,num_rad_bins,num_theta_bins);
-%Guiquan all_p_profiles = cell(num_z,num_rad_bins,num_theta_bins);
-%Guiquan all_q_profiles = cell(num_z,num_rad_bins,num_theta_bins);
-%Guiquan all_k_profiles = cell(num_z,num_rad_bins,num_theta_bins);
-%Guiquan all_theta_profiles = cell(num_z,num_rad_bins,num_theta_bins);
+all_z_profiles = cell(num_z,num_rad_bins,num_wind_bins);
+all_p_profiles = cell(num_z,num_rad_bins,num_wind_bins);
+all_q_profiles = cell(num_z,num_rad_bins,num_wind_bins);
+all_k_profiles = cell(num_z,num_rad_bins,num_wind_bins);
+all_theta_profiles = cell(num_z,num_rad_bins,num_wind_bins);
 %Guiquan ssttosave = cell(num_rad_bins,num_theta_bins);
 
 zplot = min_height+0.5*height_interval:height_interval:max_height-0.5*height_interval;
@@ -95,8 +95,8 @@ rplot = 0.5*rad_interval:rad_interval:max_rad-0.5*rad_interval;
  
 %Without basically empty ones (as determined by composite wind height-radius plots):
 hurrvec = { ...
-    %'Erika1997/' ...
-    %'Bonnie1998/' 'Danielle1998/' 'Earl1998/' 'Georges1998/' 'Mitch1998/' ...
+    'Erika1997/' ...
+    'Bonnie1998/' 'Danielle1998/' 'Earl1998/' 'Georges1998/' 'Mitch1998/' ...
     'Bret1999/' 'Dennis1999/' 'Floyd1999/' ...
     'Helene2006/' ...
     'Felix2007/' 'Ingrid2007/' ...
@@ -111,7 +111,8 @@ hurrvec = { ...
     'Franklin2017/' 'Harvey2017/' 'Irma2017/' 'Jose2017/' 'Maria2017/' 'Nate2017/'};
 
 %Testing:
-% hurrvec = {'Franklin2017/' 'Harvey2017/' 'Irma2017/' 'Jose2017/' 'Maria2017/' 'Nate2017/' };
+% hurrvec = { 'Franklin2017/' 'Harvey2017/' 'Irma2017/' 'Jose2017/' 'Maria2017/' 'Nate2017/'};
+
 
 %%% 1. RMW from Dan Chavas, every 6 hours%%%%%
 load('./RWS/ebtrk_atlc_1988_2017.mat','Year_EBT','Month_EBT','Day_EBT','HourUTC_EBT','StormName_EBT','rmkm_EBT','Vmms_EBT');
@@ -183,14 +184,6 @@ for hurr = hurrvec % 1. loop every hurricane
         lonvec = lontmp(ztmp>0&Ttmp>0&ptmp>0&WStmp>0&RHtmp>0);
         Ut = zeros(size(U));
         Ur = zeros(size(U));
-        
-
-        %A bit redundant but *pbl contains the profile from bottom to pbl_height (500m,used by Powell 2003)
-        zpbl = z(z<pbl_height);   
-        Tpbl = T(z<pbl_height);
-        ppbl = p(z<pbl_height);
-        WSpbl = WS(z<pbl_height);
-        RHpbl = RH(z<pbl_height);
 
 
         if (~isempty(z))  %Only do the computations if data is left after the clean
@@ -198,7 +191,6 @@ for hurr = hurrvec % 1. loop every hurricane
             %Compute potential temperature:
             psurf = p(length(p));
             theta = T.*(psurf./p).^(2/7);
-            thetapbl = Tpbl.*(psurf./ppbl).^(2/7);
 
             %Compute the specific humidity q:
 
@@ -219,7 +211,7 @@ for hurr = hurrvec % 1. loop every hurricane
             k = (cpa*(1-q) + cpl*q).*theta + Lv*q;
 
             %Compute mean velocity below pbl_height (Powell uses 500m):
-            WSmean = mean(WSpbl);
+            WSmean = mean(WS(z<pbl_height));
             
             windbin = floor(WSmean/wind_interval)+1;
             if (windbin > num_wind_bins)
@@ -363,43 +355,47 @@ for hurr = hurrvec % 1. loop every hurricane
 
             %Now bin into the z-grid:
             if (radbin~=0 && ~isnan(radbin) && ~isnan(windbin))
-            for j=1:length(z)
-                if (z(j)<max_height&&z(j)>min_height)
-
-                    zidx = floor((z(j)-min_height)/height_interval)+1;
-                    mean_U_profiles(zidx,radbin,windbin) = mean_U_profiles(zidx,radbin,windbin)+WS(j);
-                    mean_Ur_profiles(zidx,radbin,windbin) = mean_Ur_profiles(zidx,radbin,windbin)+Ur(j);
-                    mean_Ut_profiles(zidx,radbin,windbin) = mean_Ut_profiles(zidx,radbin,windbin)+Ut(j);
-
-                    %mean_Ur_profiles(zidx,radbin,windbin) = mean_Ur_profiles(zidx,radbin,windbin)+abs(U(j));
-                    %mean_Ut_profiles(zidx,radbin,windbin) = mean_Ut_profiles(zidx,radbin,windbin)+abs(V(j));
-
-                    mean_U_profiles_onestorm(zidx,radbin,windbin) = mean_U_profiles_onestorm(zidx,radbin,windbin)+WS(j);
-%Guiquan                        mean_T_profiles(zidx,radbin,thetabin) = mean_T_profiles(zidx,radbin,thetabin)+T(j);
-%Guiquan                        mean_RH_profiles(zidx,radbin,thetabin) = mean_RH_profiles(zidx,radbin,thetabin)+RH(j);
-                    mean_zU_profiles(zidx,radbin,windbin) = mean_zU_profiles(zidx,radbin,windbin)+z(j);
-%Guiquan                        mean_z_profiles(zidx,radbin,thetabin) = mean_z_profiles(zidx,radbin,thetabin)+z(j);
-%Guiquan                        mean_p_profiles(zidx,radbin,thetabin) = mean_p_profiles(zidx,radbin,thetabin)+p(j);
-%Guiquan                        mean_q_profiles(zidx,radbin,thetabin) = mean_q_profiles(zidx,radbin,thetabin)+q(j);
-%Guiquan                        mean_k_profiles(zidx,radbin,thetabin) = mean_k_profiles(zidx,radbin,thetabin)+k(j);
-%Guiquan                        mean_theta_profiles(zidx,radbin,thetabin) = mean_theta_profiles(zidx,radbin,thetabin)+theta(j);
-                    %radbin
-                    numvecU(zidx,radbin,windbin) = numvecU(zidx,radbin,windbin)+1;
-                    numvecU_onestorm(zidx,radbin,windbin) = numvecU_onestorm(zidx,radbin,windbin)+1;
-%Guiquan                        numvecT(zidx,radbin,thetabin) = numvecT(zidx,radbin,thetabin)+1;
-
-                    %Fill arrays with ALL data to take statistics:
-                    all_U_profiles{zidx,radbin,windbin} = [all_U_profiles{zidx,radbin,windbin} WS(j)];
-%Guiquan                        all_T_profiles{zidx,radbin,thetabin} = [all_T_profiles{zidx,radbin,thetabin} T(j)];
-%Guiquan                        all_RH_profiles{zidx,radbin,thetabin} = [all_RH_profiles{zidx,radbin,thetabin} RH(j)];
-%Guiquan                        all_z_profiles{zidx,radbin,thetabin} = [all_z_profiles{zidx,radbin,thetabin} z(j)];
-                    all_zU_profiles{zidx,radbin,windbin} = [all_zU_profiles{zidx,radbin,windbin} z(j)];
-%Guiquan                        all_p_profiles{zidx,radbin,thetabin} = [all_p_profiles{zidx,radbin,thetabin} p(j)];
-%Guiquan                        all_q_profiles{zidx,radbin,thetabin} = [all_q_profiles{zidx,radbin,thetabin} q(j)];
-%Guiquan                        all_k_profiles{zidx,radbin,thetabin} = [all_k_profiles{zidx,radbin,thetabin} k(j)];
-%Guiquan                        all_theta_profiles{zidx,radbin,thetabin} = [all_theta_profiles{zidx,radbin,thetabin} theta(j)];
-                end
-            end %z-grid
+                
+                %Plot of all of the individual sondes in each radbin:
+                figure(100)
+                hold on
+                subplot(floor(sqrt(num_rad_bins)),ceil(sqrt(num_rad_bins)),radbin)
+                plot(WS,z,'-k')
+                
+                for j=1:length(z)
+                    if (z(j)<max_height&&z(j)>min_height)
+                        
+                        zidx = floor((z(j)-min_height)/height_interval)+1;
+                        mean_U_profiles(zidx,radbin,windbin) = mean_U_profiles(zidx,radbin,windbin)+WS(j);
+                        mean_Ur_profiles(zidx,radbin,windbin) = mean_Ur_profiles(zidx,radbin,windbin)+Ur(j);
+                        mean_Ut_profiles(zidx,radbin,windbin) = mean_Ut_profiles(zidx,radbin,windbin)+Ut(j);
+                        
+                        mean_U_profiles_onestorm(zidx,radbin,windbin) = mean_U_profiles_onestorm(zidx,radbin,windbin)+WS(j);
+                        mean_T_profiles(zidx,radbin,windbin) = mean_T_profiles(zidx,radbin,windbin)+T(j);
+                        mean_RH_profiles(zidx,radbin,windbin) = mean_RH_profiles(zidx,radbin,windbin)+RH(j);
+                        mean_zU_profiles(zidx,radbin,windbin) = mean_zU_profiles(zidx,radbin,windbin)+z(j);
+                        mean_z_profiles(zidx,radbin,windbin) = mean_z_profiles(zidx,radbin,windbin)+z(j);
+                        mean_p_profiles(zidx,radbin,windbin) = mean_p_profiles(zidx,radbin,windbin)+p(j);
+                        mean_q_profiles(zidx,radbin,windbin) = mean_q_profiles(zidx,radbin,windbin)+q(j);
+                        mean_k_profiles(zidx,radbin,windbin) = mean_k_profiles(zidx,radbin,windbin)+k(j);
+                        mean_theta_profiles(zidx,radbin,windbin) = mean_theta_profiles(zidx,radbin,windbin)+theta(j);
+                        
+                        numvecU(zidx,radbin,windbin) = numvecU(zidx,radbin,windbin)+1;
+                        numvecU_onestorm(zidx,radbin,windbin) = numvecU_onestorm(zidx,radbin,windbin)+1;
+                        %Guiquan                        numvecT(zidx,radbin,thetabin) = numvecT(zidx,radbin,thetabin)+1;
+                        
+                        %Fill arrays with ALL data to take statistics:
+                        all_U_profiles{zidx,radbin,windbin} = [all_U_profiles{zidx,radbin,windbin} WS(j)];
+                        all_T_profiles{zidx,radbin,windbin} = [all_T_profiles{zidx,radbin,windbin} T(j)];
+                        all_RH_profiles{zidx,radbin,windbin} = [all_RH_profiles{zidx,radbin,windbin} RH(j)];
+                        all_z_profiles{zidx,radbin,windbin} = [all_z_profiles{zidx,radbin,windbin} z(j)];
+                        all_zU_profiles{zidx,radbin,windbin} = [all_zU_profiles{zidx,radbin,windbin} z(j)];
+                        all_p_profiles{zidx,radbin,windbin} = [all_p_profiles{zidx,radbin,windbin} p(j)];
+                        all_q_profiles{zidx,radbin,windbin} = [all_q_profiles{zidx,radbin,windbin} q(j)];
+                        all_k_profiles{zidx,radbin,windbin} = [all_k_profiles{zidx,radbin,windbin} k(j)];
+                        all_theta_profiles{zidx,radbin,windbin} = [all_theta_profiles{zidx,radbin,windbin} theta(j)];
+                    end
+                end %z-grid
             
                 numsonde(radbin,windbin) = numsonde(radbin,windbin) + 1;
             
@@ -421,7 +417,8 @@ for hurr = hurrvec % 1. loop every hurricane
     figure(1)
     subplot(floor(sqrt(length(hurrvec))),ceil(sqrt(length(hurrvec))),count_hurr)
     hold on
-    contourf(R,Z,mean_U_profiles_onestorm,0:2:60,'edgecolor','none');
+    contourf(R,Z,mean_U_profiles_onestorm,20,'edgecolor','none');
+    caxis([0 60])
     axis([0 5 0 2000])
     colorbar
     %contour(R,Z,mean_U_profiles_onestorm,0:5:60,'edgecolor','black')
@@ -435,16 +432,16 @@ end %Loop over hurricanes
 fprintf('Total number of profiles used: %i\n',sum(sum(numsonde)));
 
 mean_zU_profiles(:,:,:) = mean_zU_profiles(:,:,:)./numvecU(:,:,:);
-%Guiquan    mean_z_profiles(:,:,:)=mean_z_profiles(:,:,:)./numvecT(:,:,:);
+mean_z_profiles(:,:,:)=mean_z_profiles(:,:,:)./numvecU(:,:,:);
 mean_U_profiles(:,:,:) = mean_U_profiles(:,:,:)./numvecU(:,:,:);
 mean_Ur_profiles(:,:,:) = mean_Ur_profiles(:,:,:)./numvecU(:,:,:);
 mean_Ut_profiles(:,:,:) = mean_Ut_profiles(:,:,:)./numvecU(:,:,:);
-%Guiquan    mean_T_profiles(:,:,:)=mean_T_profiles(:,:,:)./numvecT(:,:,:);
-%Guiquan    mean_RH_profiles(:,:,:)=mean_RH_profiles(:,:,:)./numvecT(:,:,:);
-%Guiquan    mean_p_profiles(:,:,:)=mean_p_profiles(:,:,:)./numvecT(:,:,:);
-%Guiquan    mean_q_profiles(:,:,:)=mean_q_profiles(:,:,:)./numvecT(:,:,:);
-%Guiquan    mean_k_profiles(:,:,:)=mean_k_profiles(:,:,:)./numvecT(:,:,:);
-%Guiquan    mean_theta_profiles(:,:,:)=mean_theta_profiles(:,:,:)./numvecT(:,:,:);
+mean_T_profiles(:,:,:)=mean_T_profiles(:,:,:)./numvecU(:,:,:);
+mean_RH_profiles(:,:,:)=mean_RH_profiles(:,:,:)./numvecU(:,:,:);
+mean_p_profiles(:,:,:)=mean_p_profiles(:,:,:)./numvecU(:,:,:);
+mean_q_profiles(:,:,:)=mean_q_profiles(:,:,:)./numvecU(:,:,:);
+mean_k_profiles(:,:,:)=mean_k_profiles(:,:,:)./numvecU(:,:,:);
+mean_theta_profiles(:,:,:)=mean_theta_profiles(:,:,:)./numvecU(:,:,:);
 
 
 
@@ -453,11 +450,13 @@ mean_Ut_profiles(:,:,:) = mean_Ut_profiles(:,:,:)./numvecU(:,:,:);
 
 figure(2)
 hold on
-contourf(R,Z,mean_U_profiles,0:2:60,'edgecolor','none');
+contourf(R,Z,mean_U_profiles,20,'edgecolor','none');
+caxis([0 60])
 axis([0 5 0 2000])
 %contour(R,Z,mean_U_profiles,0:5:60,'edgecolor','black')
 %[~, I] = max(mean_U_profiles,[],1);
 %plot(rplot,zplot(I),'-k','linewidth',3)
+title('WS')
 
 figure(3)
 hold on
@@ -468,14 +467,16 @@ axis([-max_rad max_rad -max_rad max_rad])
 
 figure(4)
 hold on
-contourf(R,Z,mean_Ur_profiles,-20:2:15,'edgecolor','none');
+contourf(R,Z,mean_Ur_profiles,20,'edgecolor','none');
+caxis([-20 15])
 axis([0 5 0 2000])
 title('Ur')
 
 
 figure(5)
 hold on
-contourf(R,Z,mean_Ut_profiles,0:2:60,'edgecolor','none');
+contourf(R,Z,mean_Ut_profiles,20,'edgecolor','none');
+caxis([0 60])
 axis([0 5 0 2000])
 title('Ut')
 
@@ -483,6 +484,27 @@ figure(6)
 hold on
 num_samples = sum(numsonde(:,:),2);
 plot(rplot,num_samples,'-*k')
+
+figure(7)
+hold on
+contourf(R,Z,mean_theta_profiles,20,'edgecolor','none');
+caxis([302 320])
+axis([0 5 0 2000])
+title('T')
+
+figure(8)
+hold on
+contourf(R,Z,mean_RH_profiles,20,'edgecolor','none');
+caxis([80 100])
+axis([0 5 0 2000])
+title('RH')
+
+figure(100)
+for ridx = 1:num_rad_bins
+    subplot(floor(sqrt(num_rad_bins)),ceil(sqrt(num_rad_bins)),ridx)
+    title(['R/RMW = ' num2str(rplot(ridx))])
+    axis([-inf inf 0 2000])
+end
 
 %% Saving Variables
 
