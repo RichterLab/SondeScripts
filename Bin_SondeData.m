@@ -147,6 +147,10 @@ for hurr = hurrvec % 1. loop every hurricane
     clearvars cach1 cach2 cach3
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
+    %Before cycling through the sondes, open and read this storm's track file:
+    trackfile = strcat('./Track_data/',hurr{1}(1:end-1),'.txt');
+    F = readtable(trackfile,'Format','%{MM/dd/yyyy}D %{hh:mm:ss}T %f %s %f %s');
+    
     filedirtmp = strcat('./all_storms/',hurr);
     filedir = filedirtmp{1};
     files = dir([filedir '*.frd']);
@@ -226,7 +230,7 @@ for hurr = hurrvec % 1. loop every hurricane
 
             %Compute the radius of the sonde based on the current center
             %lat,lon here of the sonde are the LAUNCH coordinates
-            [lat_center,lon_center,lat,lon,time_sonde] = get_track(hurr{1},[filedir files(i).name]);
+            [lat_center,lon_center,lat,lon,time_sonde] = get_track(F,hurr{1},[filedir files(i).name]);
 
             lat = lat-lat_center; lon = lon-lon_center;
             rearth = 6371; %[km]
