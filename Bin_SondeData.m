@@ -28,7 +28,7 @@ wind_interval = 80;
 num_wind_bins = max_wind/wind_interval;
 
 %Limits of radius bins -- in normalized units (R/RMW)
-max_rad = 10;                             
+max_rad = 20;                             
 rad_interval = 0.4;
 num_rad_bins = max_rad/rad_interval;
 
@@ -95,8 +95,8 @@ rplot = 0.5*rad_interval:rad_interval:max_rad-0.5*rad_interval;
  
 %Without basically empty ones (as determined by composite wind height-radius plots):
 hurrvec = { ...
-    'Erika1997/' ...
-    'Bonnie1998/' 'Danielle1998/' 'Earl1998/' 'Georges1998/' 'Mitch1998/' ...
+    %'Erika1997/' ...
+    %'Bonnie1998/' 'Danielle1998/' 'Earl1998/' 'Georges1998/' 'Mitch1998/' ...
     'Bret1999/' 'Dennis1999/' 'Floyd1999/' ...
     'Helene2006/' ...
     'Felix2007/' 'Ingrid2007/' ...
@@ -111,7 +111,7 @@ hurrvec = { ...
     'Franklin2017/' 'Harvey2017/' 'Irma2017/' 'Jose2017/' 'Maria2017/' 'Nate2017/'};
 
 %Testing:
-% hurrvec = {'Nate2017/' };
+% hurrvec = {'Franklin2017/' 'Harvey2017/' 'Irma2017/' 'Jose2017/' 'Maria2017/' 'Nate2017/' };
 
 %%% 1. RMW from Dan Chavas, every 6 hours%%%%%
 load('./RWS/ebtrk_atlc_1988_2017.mat','Year_EBT','Month_EBT','Day_EBT','HourUTC_EBT','StormName_EBT','rmkm_EBT','Vmms_EBT');
@@ -124,8 +124,6 @@ cach = num2str(Year_EBT); %extract year added to rmw_name
 rmw_name=strcat(StormName_EBT,cach,'/');
 rmw_time=Month_EBT*10000+Day_EBT*24+HourUTC_EBT; %Form a 'number' to represent the rmw_time 
 clearvars cach
-
-profilecount(1:num_wind_bins,1:num_rad_bins,length(hurrvec))=0;
 
 count_hurr=0;
 count_sonde = 1;
@@ -232,9 +230,11 @@ for hurr = hurrvec % 1. loop every hurricane
             %lat,lon here of the sonde are the LAUNCH coordinates
             [lat_center,lon_center,lat,lon,time_sonde] = get_track(F,[filedir files(i).name]);
 
-            lat = lat-lat_center; lon = lon-lon_center;
+            lat = lat-lat_center;
+            lon = lon-lon_center;
             rearth = 6371; %[km]
-            x = rearth*tand(lon); y = rearth*tand(lat);  %zoom in -- lon is in the "x" direction, lat is in the "y" direction
+            x = rearth*tand(lon);
+            y = rearth*tand(lat);  %zoom in -- lon is in the "x" direction, lat is in the "y" direction
             rad = sqrt(x^2+y^2);
             
 %             %Compute the radial and tangential components:
@@ -254,8 +254,10 @@ for hurr = hurrvec % 1. loop every hurricane
             %Compute the radial and tangential components:
             %Here is based on the lat/lon of CURRENT sonde reading
             for sonde_idx = 1:length(U)
-                lat_s = latvec(sonde_idx) - lat_center; lon_s = lonvec(sonde_idx) - lon_center;
-                xs = rearth*tand(lon_s); ys = rearth*tand(lat_s);
+                lat_s = latvec(sonde_idx) - lat_center;
+                lon_s = lonvec(sonde_idx) - lon_center;
+                xs = rearth*tand(lon_s);
+                ys = rearth*tand(lat_s);
                
 
                 atan_tmp = atan2(ys,xs); %Location of lat/lon in polar angle
@@ -403,12 +405,9 @@ for hurr = hurrvec % 1. loop every hurricane
             
             end 
 
-            if (radbin~=0 && ~isnan(radbin) && ~isnan(windbin)) 
-                profilecount(windbin,radbin,count_hurr) = profilecount(windbin,radbin,count_hurr) + 1;
-            end
             
-            sondexvec(count_sonde) = x;
-            sondeyvec(count_sonde) = y;
+            sondexvec(count_sonde) = x/r_rmw_rad_hurr;
+            sondeyvec(count_sonde) = y/r_rmw_rad_hurr;
             count_sonde = count_sonde + 1;
 
 %Guiquan                end %If ~(isnan(SST))
@@ -433,7 +432,7 @@ for hurr = hurrvec % 1. loop every hurricane
  end % hurr in the rmw file?
 end %Loop over hurricanes
 
-fprintf('Total number of profiles used: %i\n',sum(sum(sum(profilecount))));
+fprintf('Total number of profiles used: %i\n',sum(sum(numsonde)));
 
 mean_zU_profiles(:,:,:) = mean_zU_profiles(:,:,:)./numvecU(:,:,:);
 %Guiquan    mean_z_profiles(:,:,:)=mean_z_profiles(:,:,:)./numvecT(:,:,:);
@@ -465,7 +464,7 @@ hold on
 plot(sondexvec,sondeyvec,'x')
 xlabel('x')
 ylabel('y')
-%axis([-5 5 -5 5])
+axis([-max_rad max_rad -max_rad max_rad])
 
 figure(4)
 hold on
@@ -496,5 +495,5 @@ plot(rplot,num_samples,'-*k')
 save('allStorms_all_profile_data_rad_MBL100.mat','all_U_profiles');
 save('allStorms_constants_rad_MBL100.mat','rho' ,'pbl_height','max_height',...
     'min_height','height_interval','num_z','max_rad','rad_interval',...
-    'num_rad_bins','profilecount');
+    'num_rad_bins');
 
