@@ -7,7 +7,7 @@ close all
 load('allStorms_all_profile_data_rad.mat');
 load('allStorms_constants_rad.mat');
 
-min_samples = 8;   %Minimum number of samples to be included to consider an average quantity
+min_samples = 10;   %Minimum number of samples to be included to consider an average quantity
 min_fit_samples = 5;  %Minimum  number of samples to fit a line through
 zplot = min_height+0.5*height_interval:height_interval:max_height-0.5*height_interval;
 num_z = length(zplot);
@@ -18,7 +18,7 @@ Uplot = 0.5*wind_interval:wind_interval:max_wind-0.5*wind_interval;
 
 %Heights of fitting:
 fit_height_min=10;  %[m]
-fit_height_max=150;  %[m]
+fit_height_max=100;  %[m]
 
 %Indices of fitting:
 start_fitting = find(zplot>fit_height_min,1,'first');
@@ -83,13 +83,22 @@ for j=1:num_wind_bins % wind radius
 end
 
 
+%Set up a color vector that you can loop through in order
+colorvec{1} = [255/255 0 0];
+colorvec{2} = [0 255/255 0];
+colorvec{3} = [0 0 255/255];
+colorvec{4} = [255/255 128/255 128/255];
+colorvec{5} = [255/255 0 255/255];
+colorvec{6} = [0 255/255 255/255];
+
 %Plot mean profiles in panels for each radius
 figure
 for i=1:6
     %subplot(floor(sqrt(num_rad_bins)),ceil(sqrt(num_rad_bins)),i)
     subplot(2,3,i)
     for j=1:1:num_wind_bins
-        plot(mean_U_profiles(1:1:end,i,j),zplot(1:1:end),'+')
+        p(j) = plot(mean_U_profiles(1:1:end,i,j),zplot(1:1:end),'+');
+        legendvec{j} = ['U = ' num2str(Uplot(j))];
         hold all
         tmp=mean_U_profiles(:,i,j);
         zfit = zplot(~isnan(tmp));
@@ -109,20 +118,23 @@ for i=1:6
     set(gca, 'YScale', 'log')
     box off
     title(['R/RMW = ' num2str(rplot(i))])
+    legend(p,legendvec)
 end
+clearvars p legendvec;
 
 %Plot mean profiles in panels for each wind speed
 figure
-for j=1:8
+for j=3:7  %Wind speed bins
     %subplot(floor(sqrt(num_rad_bins)),ceil(sqrt(num_rad_bins)),i)
-    subplot(2,4,j)
-    for i=1:1:num_rad_bins
-        plot(mean_U_profiles(1:end,i,j),zplot(1:end),'+')
+    subplot(2,3,j-2)
+    for i=1:1:6  %Radius bins
+        p(i) = plot(mean_U_profiles(1:end,i,j),zplot(1:end),'+','color',colorvec{i});
+        legendvec{i} = ['R/RMW = ' num2str(rplot(i))];
         hold all
         tmp=mean_U_profiles(:,i,j);
         zfit = zplot(~isnan(tmp));
         U_fit=polyval(Ucoeffs(:,i,j),log(zfit));
-        plot(U_fit,zfit,'k-','linewidth',1.5)
+        plot(U_fit,zfit,'k-','linewidth',1.5,'color',colorvec{i})
         numtmp = numvecU(:,i,j);
         stdtmp = std_U_profiles(:,i,j);
         %errorbar(tmp(numtmp>min_samples),zplot(numtmp>min_samples),2*stdtmp(numtmp>min_samples),'*','horizontal')
@@ -133,13 +145,13 @@ for j=1:8
     set(0,'DefaultTextInterpreter', 'latex');
     %set(gca,'XLim',[0 90]);
     %set(gca,'XTick',[0:10:90]);
-    set(gca,'YLim',[10 2000]);
+    set(gca,'YLim',[10 500]);
     set(gca, 'YScale', 'log')
     box off
     title(['U = ' num2str(Uplot(j))])
-    if (j==8)
-        legend('R1','R2','R3','R4','R5','R6','R7','R8')
-    end
+    %if (j==7)
+        legend(p,legendvec,'location','southeast')
+    %end
 end
 
 
@@ -236,14 +248,15 @@ end
 
 figure
 hold on
-for j=1:num_wind_bins
-    subplot(ceil(sqrt(num_wind_bins)),ceil(sqrt(num_wind_bins)),j)
+for j=3:7
+    %subplot(ceil(sqrt(num_wind_bins)),ceil(sqrt(num_wind_bins)),j)
+    subplot(2,3,j-2)
     errorbar(rplot(:),CD(:,j),delta_CD(:,j),'sb','markerfacecolor','b')
     
     xlabel('\it $R/RMW$','FontName','Times New Roman','fontsize',18);
     ylabel('\it $C_D$','FontName','Times New Roman','fontsize',18);
     set(gca,'FontName','Times New Roman','linewidth',1.5,'fontsize',16);
-    axis([0 12 0 5e-3])
+    axis([0 6 0 4e-3])
     title(['U10 = ' num2str(Uplot(j))])    
     
 end
