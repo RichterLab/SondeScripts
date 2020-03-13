@@ -7,8 +7,8 @@ close all
 load('allStorms_all_profile_data_rad.mat');
 load('allStorms_constants_rad.mat');
 
-min_samples = 10;   %Minimum number of samples to be included to consider an average quantity
-min_fit_samples = 5;  %Minimum  number of samples to fit a line through
+min_samples = 8;   %Minimum number of samples to be included to consider an average quantity
+min_fit_samples = 8;  %Minimum  number of samples to fit a line through
 zplot = min_height+0.5*height_interval:height_interval:max_height-0.5*height_interval;
 num_z = length(zplot);
 
@@ -18,7 +18,7 @@ Uplot = 0.5*wind_interval:wind_interval:max_wind-0.5*wind_interval;
 
 %Heights of fitting:
 fit_height_min=10;  %[m]
-fit_height_max=100;  %[m]
+fit_height_max=150;  %[m]
 
 %Indices of fitting:
 start_fitting = find(zplot>fit_height_min,1,'first');
@@ -92,10 +92,11 @@ colorvec{5} = [255/255 0 255/255];
 colorvec{6} = [0 255/255 255/255];
 
 %Plot mean profiles in panels for each radius
-figure
-for i=1:6
-    %subplot(floor(sqrt(num_rad_bins)),ceil(sqrt(num_rad_bins)),i)
-    subplot(2,3,i)
+figure(1)
+%for i=1:6
+for i=1:num_rad_bins
+    subplot(ceil(sqrt(num_rad_bins)),floor(sqrt(num_rad_bins)),i)
+    %subplot(2,3,i)
     for j=1:1:num_wind_bins
         p(j) = plot(mean_U_profiles(1:1:end,i,j),zplot(1:1:end),'+');
         legendvec{j} = ['U = ' num2str(Uplot(j))];
@@ -123,7 +124,7 @@ end
 clearvars p legendvec;
 
 %Plot mean profiles in panels for each wind speed
-figure
+figure(2)
 for j=3:7  %Wind speed bins
     %subplot(floor(sqrt(num_rad_bins)),ceil(sqrt(num_rad_bins)),i)
     subplot(2,3,j-2)
@@ -202,9 +203,9 @@ ZhangHK = (ZhangH + ZhangQ)*1000; %Multiply by 1000 to get W/m2
 ZhangFit = load('./Published_data/ZhangCK.dat');
 Zhangkstar = -ZhangHK./Zhangustar/1000/rho;
 
-figure
+figure(3)
 for i=1:num_rad_bins
-    subplot(ceil(sqrt(num_rad_bins)),ceil(sqrt(num_rad_bins)),i)
+    subplot(ceil(sqrt(num_rad_bins)),floor(sqrt(num_rad_bins)),i)
     hold on
     
     plot(u10plt(:),LP_CD(:),'--k','linewidth',4)
@@ -224,7 +225,7 @@ for i=1:num_rad_bins
     title(['R/RMW = ' num2str(rplot(i))])
 end
 
-figure
+figure(4)
 for i=1:num_rad_bins
     subplot(ceil(sqrt(num_rad_bins)),ceil(sqrt(num_rad_bins)),i)
     hold on
@@ -246,7 +247,7 @@ for i=1:num_rad_bins
     title(['R/RMW = ' num2str(rplot(i))])
 end
 
-figure
+figure(5)
 hold on
 for j=3:7
     %subplot(ceil(sqrt(num_wind_bins)),ceil(sqrt(num_wind_bins)),j)
