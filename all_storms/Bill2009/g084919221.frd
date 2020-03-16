@@ -1,0 +1,13 @@
+ ===========================================================================
+ DROPWINDSONDE PROCESSING RECORD                            Sonde: 084919221
+ PDS file written Aug 20, 2009.                             Format:    V6.08
+ Aircraft: N43RF                             Date: 090821   Time: 021639 UTC
+ ---------------------------------------------------------------------------
+ Bias corrections:  PR =    .0 mb  TE =    .0 C  RH =    .0 %  PRB =  -.5 mb
+ Filters (LPF):     PTH =  10 s    WIND =  10 s       Hyd anchor =       SFC
+ Dyn RH correction =  N     WSHR COR =      Y         Splash PR  =  995.4 mb
+ Estimated PR used =  N     GPS VERR =    .61 m/s     HYD SFCP   = 1002.2 mb
+ Dyn T correction  =  Y     WGACORR  =     .4 m       AC GA ADJ  =     .0 m
+ ---------------------------------------------------------------------------
+ COMMENTS: Rainband                                                    
+ ===========================================================================
