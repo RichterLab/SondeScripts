@@ -9,8 +9,9 @@
  Estimated PR used =  N     GPS VERR =    .39 m/s     HYD SFCP   = 1006.1 mb
  Dyn T correction  =  N     WGACORR  =     .0 m       AC GA ADJ  =     .0 m
  ---------------------------------------------------------------------------
- COMMENTS: WS correction                                                        
+ COMMENTS: None                                                        
  ===========================================================================
+ Applying wind shear correction...
 
  ==============================================================================
  Date: 111027   Lat:  19.58 N   TA:   12.7 C   PS:  694.5 mb   WD:    63 deg
