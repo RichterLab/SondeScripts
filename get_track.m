@@ -1,4 +1,4 @@
-function [lat_center,lon_center,lat,lon,cach2] = get_track(F,sonde_filename)
+function [lat_center,lon_center,lat,lon,time] = get_track(F,sonde_filename)
 
 %From the sonde_filename file, get the day, lat, lon of sonde drop:
 fid = fopen(sonde_filename);
@@ -24,15 +24,14 @@ sec = time_sonde(5:6);
 %Get a numeric value of date/time:
 time = datenum(str2double(year),str2double(mon),str2double(day),str2double(hr),str2double(min),str2double(sec));
 
-%Format sonde time output in same way as done for EBT data (i.e. RMW)
-cach1=C{1}{17}(7:8); %hour
-cach2=str2double(mon)*10000+str2double(day)*24+str2double(cach1);
-
 %From the sonde_filename file, get the day, lat, lon of sonde drop:
 
 %THESE ARE THE LAT/LON OF LAUNCH (as opposed to the lat,lon as it falls):
-lat = str2double(C{1}{16}(22:26));
-lon = 360 - str2double(C{1}{17}(22:26));
+tmpLat = regexp(C{1}{16},'Lat:');
+lat = str2double(C{1}{16}(tmpLat+5:tmpLat+11));
+tmpLon = regexp(C{1}{17},'Lon:');
+lon = str2double(C{1}{17}(tmpLon+5:tmpLon+11));
+clear tmpLat tmpLon
 
 lat_center_vec = table2array(F(:,3));
 lon_center_vec = table2array(F(:,5));
@@ -45,9 +44,10 @@ if (isempty(I))
     lat_center = NaN;
     lon_center = NaN;
 else
+   % lat_centers = lat_center_vec(I)
     
     lat_center = lat_center_vec(I(1));
-    lon_center = 360-lon_center_vec(I(1));
+    lon_center = lon_center_vec(I(1));
     
 end
 

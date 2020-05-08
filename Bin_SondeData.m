@@ -1,9 +1,8 @@
-%%%%%%
+%%
 clear all
 close all
 clc
 
-%%
 %Split into 10m/s-wide bins from 0 to 80 m/s (each with its own mean profile)
 %Split vertical into 5m-wide bins
 
@@ -23,7 +22,7 @@ height_interval = 10;
 num_z = (max_height-min_height)/height_interval;
 
 % Limits of wind speed bins
-max_wind = 80;
+max_wind = 100;
 wind_interval = 10;
 num_wind_bins = max_wind/wind_interval;
 
@@ -36,12 +35,6 @@ num_rad_bins = max_rad/rad_interval;
 %num_rad_bins = 4; % in the eyewall or outside the eyewall
 %0-0.5; 0.1-1; 1-2; 2-3; 3-4; >4
 %0-1; 1-2; 2-3; >3
-
-%Limits of the potential temperature bins:
-%Guiquan min_theta = 295;
-%Guiquan max_theta = 305;
-%Guiquan theta_interval = 1;
-%Guiquan num_theta_bins = (max_theta-min_theta)/theta_interval;
 
 % Making blank matrices to save spaces for data
 % [height_bin, radii_bin, wind_bin]
@@ -75,58 +68,90 @@ zplot = min_height+0.5*height_interval:height_interval:max_height-0.5*height_int
 rplot = 0.5*rad_interval:rad_interval:max_rad-0.5*rad_interval;
 Uplot = 0.5*wind_interval:wind_interval:max_wind-0.5*wind_interval;
 
-
-%All of them that we have track data for:
-hurrvec = { ...
-    'Erika1997/' ...
-    'Bonnie1998/' 'Danielle1998/' 'Earl1998/' 'Georges1998/' 'Mitch1998/' ...
-    'Bret1999/' 'Dennis1999/' 'Dora1999/' 'Eugene1999/' 'Emily1999/' 'Floyd1999/' 'Irene1999/' ...
-    'Helene2006/' ...
-    'Felix2007/' 'Ingrid2007/' 'Karen2007/' ...
-    'Dolly2008/' 'Fay2008/' 'Gustav2008/' 'Hanna2008/' 'Ike2008/' 'Kyle2008/' 'Paloma2008/' ...
-    'Danny2009/' ...
-    'Earl2010/' 'Karl2010/' 'Alex2010/' ...
-    'Dora2011/' 'Irene2011/' 'Rina2011/' ...
-    'Leslie2012/' 'Sandy2012/' ...
-    'Gabrielle2013/' 'Ingrid2013/' 'Karen2013/' ...
-    'Arthur2014/' 'Bertha2014/' 'Cristobal2014/' 'Edouard2014/' 'Gonzalo2014/' ...
-    'Danny2015/' 'Erika2015/' 'Guillermo2015/' 'Hilda2015/' 'Joaquin2015/' 'Oho2015/' ...
-    'Hermine2016/' 'Karl2016/' 'Matthew2016/' 'TropDep2016/' ...
-    'Franklin2017/' 'Harvey2017/' 'Irma2017/' 'Jose2017/' 'Maria2017/' 'Nate2017/'};
-
-
-
 %Without basically empty ones (as determined by composite wind height-radius plots):
 % hurrvec = { ...
-%     'Erika1997/' ...
+%     'Danny1997/' 'Erika1997/' 'Guillermo1997/' ...
 %     'Bonnie1998/' 'Danielle1998/' 'Earl1998/' 'Georges1998/' 'Mitch1998/' ...
-%     'Bret1999/' 'Dennis1999/' 'Floyd1999/' ...
+%     'Bret1999/' 'Dennis1999/' 'Dora1999/' 'Emily1999/' 'Eugene1999/' 'Floyd1999/' 'Irene1999/' ...
 %     'Helene2006/' ...
-%     'Felix2007/' 'Ingrid2007/' ...
-%     'Dolly2008/' 'Fay2008/' 'Gustav2008/' 'Ike2008/' 'Paloma2008/' ...
-%     'Earl2010/' 'Karl2010/' ...
-%     'Irene2011/' 'Rina2011/' ...
-%     'Leslie2012/' 'Sandy2012/' ...
-%     'Ingrid2013/' 'Karen2013/' ...
-%     'Arthur2014/' 'Bertha2014/' 'Cristobal2014/' 'Edouard2014/' 'Gonzalo2014/' ...
-%     'Danny2015/' 'Erika2015/' 'Joaquin2015/' ...
-%     'Hermine2016/' 'Karl2016/' 'Matthew2016/' ...
-%     'Franklin2017/' 'Harvey2017/' 'Irma2017/' 'Jose2017/' 'Maria2017/' 'Nate2017/'};
+%     'Felix2007/' 'Ingrid2007/' 'Karen2007/' 'Noel2007/' ...
+%     'Dolly2008/' 'Fay2008/' 'Gustav2008/' 'Hanna2008/' 'Ike2008/' 'Kyle2008/' 'Paloma2008/' ...
+%     'Ana2009/' 'Bill2009/' 'Danny2009/' ...
+%     'Alex2010/' 'Earl2010/' 'Karl2010/' 'Richard2010/' 'Tomas2010/' ...
+%     'Dora2011/' 'Don2011/' 'Emily2011/' 'Irene2011/' 'Katia2011/' 'Rina2011/' ...
+%     'Isaac2012/' 'Leslie2012/' 'Sandy2012/' ...
+%     'Gabrielle2013/' 'Ingrid2013/' 'Karen2013/' ...
+%     'Arthur2014/' 'Bertha2014/' 'Cristobal2014/' 'Edouard2014/' 'Gonzalo2014/' 'Iselle2014/' 'Julio2014/' 'Simon2014/' 'Ana2014/' ...
+%     'Bill2015/' 'Carlos2015/' 'Danny2015/' 'Ela2015/' 'Erika2015/' 'Guillermo2015/' 'Hilda2015/' 'Joaquin2015/' 'Kate2015/' 'Oho2015/' 'Patricia2015/' ...
+%     'Bonnie2016/' 'Colin2016/' 'Danielle2016/' 'Darby2016/' 'Earl2016/' 'Hermine2016/' 'Javier2016/' 'Julia2016/' 'Karl2016/' 'Lester2016/' 'Matthew2016/' 'Nicole2016/' 'Otto2016/' ...
+%     'Franklin2017/' 'Harvey2017/' 'Irma2017/' 'Jose2017/' 'Katia2017/' 'Maria2017/' 'Nate2017/' 'Norma2017/'};
 
-%Testing:
-% hurrvec = {'Nate2017/'};
+% Without ones with no profiles used in the processing
+ hurrvec = { ... 
+      'Danny1997/' 'Erika1997/' ...
+      'Bonnie1998/' 'Danielle1998/' 'Earl1998/' 'Georges1998/' 'Mitch1998/' ...
+      'Bret1999/' 'Dennis1999/' 'Floyd1999/' 'Irene1999/' ...
+      'Edouard2002/' 'Fay2002/' 'Gustav2002/' 'Hanna2002/' 'Isidore2002/' 'Lili2002/' ...
+      'Claudette2003/' 'Erika2003/' 'Fabian2003/' 'Isabel2003/' 'Odette2003/' ...
+      'Bonnie2004/' 'Charley2004/' 'Frances2004/' 'Ivan2004/' 'Jeanne2004/' ...
+      'Arlene2005/' 'Cindy2005/' 'Dennis2005/' 'Emily2005/' 'Franklin2005/' 'Gert2005/' 'Irene2005/' 'Katrina2005/' 'Ophelia2005/' 'Rita2005/' 'Wilma2005/' 'Gamma2005/' ...
+      'Ernesto2006/' 'Helene2006/' ...
+      'Felix2007/' 'Ingrid2007/' 'Karen2007/' ...
+      'Dolly2008/' 'Fay2008/' 'Gustav2008/' 'Ike2008/' 'Kyle2008/' 'Paloma2008/' ...
+      'Bill2009/' ...
+      'Alex2010/' 'Earl2010/' 'Karl2010/' 'Richard2010/' 'Tomas2010/' ...
+      'Dora 2011/' 'Don2011/' 'Emily2011/' 'Irene2011/' 'Katia2011/' 'Rina2011/' ...
+      'Isaac2012/' 'Leslie2012/' 'Sandy2012/' ...
+      'Gabrielle2013/' 'Ingrid2013/' 'Karen2013/' ...
+      'Arthur2014/' 'Bertha2014/' 'Cristobal2014/' 'Edouard2014/' 'Gonzalo2014/' 'Iselle2014/' 'Julio2014/' 'Simon2014/' ...
+      'Carlos2015/' 'Danny2015/' 'Erika2015/' 'Guillermo2015/' 'Hilda2015/' 'Joaquin2015/' 'Kate2015/' 'Patricia2015/' ...
+      'Bonnie2016/' 'Danielle2016/' 'Earl2016/' 'Hermine2016/' 'Javier2016/' 'Julia2016/' 'Karl2016/' 'Matthew2016/' 'Nicole2016/' 'Otto2016/' ...
+      'Franklin2017/' 'Harvey2017/' 'Irma2017/' 'Jose2017/' 'Katia2017/' 'Maria2017/' 'Nate2017/' 'Norma2017/' ...
+      'Alberto2018/' 'Chris2018/' 'Florence2018/' 'Gordon2018/' 'Hector2018/' 'Isaac2018/' 'Michael2018/' 'Olivia2018/'
+};
 
+%%% Load both TCOBS and EBT RMW data, use TCOBS if available, EBT if not
 
 %%% 1. RMW from Dan Chavas, every 6 hours%%%%%
-load('./RWS/ebtrk_atlc_1988_2017.mat','Year_EBT','Month_EBT','Day_EBT','HourUTC_EBT','StormName_EBT','rmkm_EBT','Vmms_EBT');
+% load Atlantic and Pacific data separately then combine 
+atl = load('./RWS/ebtrk_atlc_1988_2018.mat','Year_EBT','Month_EBT','Day_EBT','HourUTC_EBT','StormName_EBT','rmkm_EBT','Vmms_EBT','LatN_EBT','LonW_EBT');
+pac = load('./RWS/ebtrk_epac_2001_2018.mat','Year_EBT','Month_EBT','Day_EBT','HourUTC_EBT','StormName_EBT','rmkm_EBT','Vmms_EBT','LatN_EBT','LonW_EBT');
+
+Year_EBT = [atl.Year_EBT; pac.Year_EBT];
+Month_EBT = [atl.Month_EBT; pac.Month_EBT];
+Day_EBT = [atl.Day_EBT; pac.Day_EBT];
+HourUTC_EBT = [atl.HourUTC_EBT; pac.HourUTC_EBT];
+StormName_EBT = [atl.StormName_EBT; pac.StormName_EBT];
+rmkm_EBT = [atl.rmkm_EBT; pac.rmkm_EBT];
+Vmms_EBT = [atl.Vmms_EBT; pac.Vmms_EBT];
+LatN_EBT = [atl.LatN_EBT; pac.LatN_EBT];
+LonW_EBT = [atl.LonW_EBT; pac.LonW_EBT];
+rmw_name_EBT = strcat(StormName_EBT,num2str(Year_EBT),'/');
+rmw_time_EBT = datenum([Year_EBT';Month_EBT';Day_EBT';HourUTC_EBT';zeros(size(Day_EBT))';zeros(size(Day_EBT))']'); % time in matlab datenum format
+clear atl pac
 
 %%% 2. RMW from Jonathan Vigh, every 1 hour%%%%%
-%%% Attention: The datatype is different with 'ebtrk_atlc_1988_2017.mat'%%%
-% load('./RWS/TCOBS_0.40_20160119.nc.mat');
+%%% Attention: The datatype is different than 'ebtrk_atlc_1988_2017.mat'%%%
+load('./RWS/TCOBS_0.42_20180209.nc.mat');
 
-cach = num2str(Year_EBT); %extract year added to rmw_name
-rmw_name=strcat(StormName_EBT,cach,'/');
-rmw_time=Month_EBT*10000+Day_EBT*24+HourUTC_EBT; %Form a 'number' to represent the rmw_time
+cach = num2str(ATCF_stormyear); %extract year added to rmw_name
+rmw_name_TC = strcat(ATCF_stormname,cach,'/');
+convDist = 1.852;   % Conversion factor for naut miles to km
+convSpeed = 0.51444; % COnversion factor from knots to m/s
+rmw_time_TC = nan(size(TCOBS_RMW));
+for currStorm =1:length(rmw_name_TC)      % Cycle through storms
+    timeStart = BT_yyyymmddhhmm{1,currStorm};
+    tcTstart = datenum([str2num(timeStart(1:4)) str2num(timeStart(5:6)) str2num(timeStart(7:8)) ...
+        str2num(timeStart(9:10)) str2num(timeStart(11:12)) 00]);
+    numObs = sum(~isnan(TCOBS_time_since_first_data_point(:,currStorm)));
+    for w=1:numObs   % Cycle through TCOBS for that storm
+        rmw_time_TC(w,currStorm) = datenum([str2num(timeStart(1:4)) str2num(timeStart(5:6)) str2num(timeStart(7:8)) ...
+            str2num(timeStart(9:10))+TCOBS_time_since_first_data_point(w,currStorm) str2num(timeStart(11:12)) 00]);
+    end 
+end
+rmkm_TC = convDist.*TCOBS_RMW;
+Vmms_TC = convSpeed.*TCOBS_Vmax;
+
 clearvars cach
 
 count_hurr=0;
@@ -139,15 +164,37 @@ for hurr = hurrvec % 1. loop every hurricane
     fprintf('Starting storm: %s\n',hurr{1});
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    cach = strmatch(upper(hurr), rmw_name); % RMW location of specific hurricane
-    if (~isnan(cach)) % ensure hurr name of dropsondes corresponds to a rmw_name from the track data
-        clearvars rmw_time_hurr rmw_rad_hurr
-        cach1=rmw_time(cach(1):cach(end)); % RMW time of specific hurricane
-        cach2=rmkm_EBT(cach(1):cach(end)); % RMW radius of specific hurricane
-        cach3=Vmms_EBT(cach(1):cach(end)); % RMW wind speed of specific hurricane
-        rmw_time_hurr = cach1(cach1>0&cach2>0);%remove nan
-        rmw_rad_hurr  = cach2(cach1>0&cach2>0);%remove nan
-        rmw_speed_hurr= cach3(cach1>0&cach2>0);%remove nan
+    % Check if storm is in TCOBS or EBT
+    clear isTCOBS isEBT
+    isTCOBS = ismember(upper(hurr),rmw_name_TC);
+    if isTCOBS<1
+       isEBT = ismember(upper(hurr),rmw_name_EBT);
+    else
+        isEBT = 0;
+    end
+    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    if (isEBT + isTCOBS > 0) %(~isnan(cach)) % ensure hurr name of dropsondes corresponds to a rmw_name from the track data
+        if isTCOBS>0
+            clearvars rmw_time rmw_rad_hurr
+            cach = strmatch(upper(hurr), rmw_name_TC); % RMW location of specific hurricane
+            cach1 = rmw_time_TC(:,cach); % RMW time of specific hurricane
+            cach2 = rmkm_TC(:,cach); % RMW radius of specific hurricane
+            cach3 = Vmms_TC(:,cach); % RMW wind speed of specific hurricane
+            rmw_time_hurr = cach1(cach1>0&cach2>0);%remove nan
+            rmw_rad_hurr  = cach2(cach1>0&cach2>0);%remove nan
+            rmw_speed_hurr= cach3(cach1>0&cach2>0);%remove nan
+        elseif isEBT>0
+            clearvars rmw_time rmw_rad_hurr
+            cach = strmatch(upper(hurr), rmw_name_EBT);
+            cach1 = rmw_time_EBT(cach); % RMW time of specific hurricane
+            cach2 = rmkm_EBT(cach); % RMW radius of specific hurricane
+            cach3 = Vmms_EBT(cach); % RMW wind speed of specific hurricane
+            rmw_time_hurr = cach1(cach1>0&cach2>0);%remove nan
+            rmw_rad_hurr  = cach2(cach1>0&cach2>0);%remove nan
+            rmw_speed_hurr= cach3(cach1>0&cach2>0);%remove nan
+        end
+       
         clearvars cach1 cach2 cach3
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
@@ -224,12 +271,15 @@ for hurr = hurrvec % 1. loop every hurricane
                 %Compute mean velocity below pbl_height (Powell uses 500m):
                 %WSmean = mean(WS(z<pbl_height));
                 
+                % Try using the maximum wind speed below 100 m
+                WSmean = nanmax(WS(z<100));
+                
                 %Trying by using the lowest recorded wind speed rather than a PBL average
-                if (z(end) < 100)  %Only do this if the lowest recording is beneath 100m
-                    WSmean = WS(end);
-                else
-                    WSmean = NaN;
-                end
+%                 if (z(end) < 100)  %Only do this if the lowest recording is beneath 100m
+%                     WSmean = WS(end);
+%                 else
+%                     WSmean = NaN;
+%                 end
                 
 %                 %Testing old way of binning by wind speed:
 %                 WSmean = mean(WS(z<50));
@@ -293,40 +343,20 @@ for hurr = hurrvec % 1. loop every hurricane
                     Ur(sonde_idx) = radial_mat(2);
                     
                 end
-                
-                
-                %             if (rad < 100)
-                %             figure(12)
-                %             clf
-                %             hold on
-                %             plot(U,z,'b')
-                %             plot(V,z,'g')
-                %             plot(Ur,z,'c')
-                %             plot(Ut,z,'r')
-                %             legend('U','V','Ur','Ut')
-                %             drawnow
-                %
-                %             figure(13)
-                %             clf
-                %             hold on
-                %             q=quiver(x,y,mean(U),mean(V));
-                %             q.MaxHeadSize = 0.8;
-                %             q.Color = 'g';
-                %             axis([-100 100 -100 100])
-                %             drawnow
-                %
-                %             %pause
-                %             end
-                
+                               
                 clearvars tmp_mat radial_mat
                 
-                % position of dropsonde, because RMW is every 6 bours, so if the
-                % k_rmw_time_hurr (time_sonde-3, time_sonde+3), then
-                % r_rmw_rad_hurr = RMW(time sonde), without interpolation
-                k_rmw_time_hurr = find(rmw_time_hurr<=time_sonde+3 & rmw_time_hurr>time_sonde-3);
+                % Find RMW data closest to dropsonde in time, within 1 hr
+                % for TCOBS & 6 hours for EBT
+                if isTCOBS>0
+                    k_rmw_time_hurr = find(rmw_time_hurr<=time_sonde+(1/48) & rmw_time_hurr>time_sonde-(1/48)); % Find TCOBS within an hour of the sonde
+                elseif isEBT>0
+                    k_rmw_time_hurr = find(rmw_time_hurr<=time_sonde+(1/8) & rmw_time_hurr>time_sonde-(1/8)); % Find EBT within 6 hours of the sonde
+                end
                 r_rmw_rad_hurr = -1;
                 radbin = 0;
                 rad_sonde_rms_ratio = -1;
+                datevec(time_sonde);
                 
                 if (~isempty(k_rmw_time_hurr)) % representing whether time of hurricane has a corresponding RMW
                     r_rmw_rad_hurr  = rmw_rad_hurr(k_rmw_time_hurr); %radii of maximum wind speed of this dropsonde
@@ -441,22 +471,7 @@ for hurr = hurrvec % 1. loop every hurricane
                 %Guiquan                end %If ~(isnan(SST))
             end  %If length(z)>0 statement
         end %All the .frd files in one hurricane
-        
-        %Plot the contours of mean velocity, as in Zhang et al. (2011):
-%         mean_U_profiles_onestorm(:,:,:) = mean_U_profiles_onestorm(:,:,:)./numvecU_onestorm(:,:,:);
-%         
-%         [R,Z] = meshgrid(rplot,zplot);
-%         figure(1)
-%         subplot(floor(sqrt(length(hurrvec))),ceil(sqrt(length(hurrvec))),count_hurr)
-%         hold on
-%         contourf(R,Z,mean_U_profiles_onestorm,20,'edgecolor','none');
-%         caxis([0 60])
-%         axis([0 5 0 2000])
-%         colorbar
-        %contour(R,Z,mean_U_profiles_onestorm,0:5:60,'edgecolor','black')
-        %[maxspeed, I] = max(mean_U_profiles_onestorm,[],1);
-        %plot(rplot,zplot(I),'-k','linewidth',3)
-%         title(hurr)
+       
         
     end % hurr in the rmw file?
 end %Loop over hurricanes
@@ -505,12 +520,12 @@ axis([-max_rad max_rad -max_rad max_rad])
 % title('Ur')
 % 
 % 
-% figure(5)
-% hold on
-% contourf(R,Z,mean_Ut_profiles,20,'edgecolor','none');
-% caxis([0 60])
-% axis([0 5 0 2000])
-% title('Ut')
+figure(5)
+hold on
+%contourf(R,Z,mean_Ut_profiles,20,'edgecolor','none');
+caxis([0 60])
+axis([0 5 0 2000])
+title('Ut')
 
 figure(6)
 hold on
@@ -531,21 +546,21 @@ plot(rplot,num_samples,'-*k')
 % axis([0 5 0 2000])
 % title('RH')
 
-figure(100)
-for ridx = 1:num_rad_bins
-    subplot(ceil(sqrt(num_rad_bins)),ceil(sqrt(num_rad_bins)),ridx)
-    title(['R/RMW = ' num2str(rplot(ridx))])
-    axis([-inf inf 0 2000])
-end
-sgtitle('Radius bins')
-
-figure(101)
-for widx = 1:num_wind_bins
-    subplot(ceil(sqrt(num_wind_bins)),ceil(sqrt(num_wind_bins)),widx)
-    title(['WS = ' num2str(Uplot(widx))])
-    axis([-inf inf 0 2000])
-end
-sgtitle('Wind bins')
+% figure(100)
+% for ridx = 1:num_rad_bins
+%     subplot(ceil(sqrt(num_rad_bins)),ceil(sqrt(num_rad_bins)),ridx)
+%     title(['R/RMW = ' num2str(rplot(ridx))])
+%     axis([-inf inf 0 2000])
+% end
+% sgtitle('Radius bins')
+% 
+% figure(101)
+% for widx = 1:num_wind_bins
+%     subplot(ceil(sqrt(num_wind_bins)),ceil(sqrt(num_wind_bins)),widx)
+%     title(['WS = ' num2str(Uplot(widx))])
+%     axis([-inf inf 0 2000])
+% end
+% sgtitle('Wind bins')
 
 %% Saving Variables
 
